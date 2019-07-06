@@ -1,0 +1,12 @@
+.vs/*
+*/bin
+*/obj
+/bin
+/obj
+.vscode/
+.idea/
+volumes/
+*.pubxml
+*.user
+*/appsettings.Development.json
+appsettings.Development.json
