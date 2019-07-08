@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Cognito_token_validator;
 using Cognito_token_validator.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Client.Controllers
 {
@@ -13,6 +14,7 @@ namespace Client.Controllers
     public class HomeController : ControllerBase
     {
         // GET api/home
+        [Authorize]
         [HttpGet]
         public ActionResult<string> Get(int id)
         {
@@ -20,8 +22,9 @@ namespace Client.Controllers
             {
                 string authorizationHeader = Request.Headers["Authorization"];
                 var validator = new CognitoValidator(authorizationHeader);
+                Console.WriteLine(validator.GetToken());
                 Console.WriteLine(validator.GetDecodedToken());
-                return validator.GetToken();
+                return validator.ValidateToken();
             }
             catch (InvalidAuthorizationHeader e)
             {

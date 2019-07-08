@@ -1,5 +1,7 @@
-﻿using Cognito_token_validator.Exceptions;
+﻿using System;
+using Cognito_token_validator.Exceptions;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Cognito_token_validator
 {
@@ -8,6 +10,7 @@ namespace Cognito_token_validator
         private readonly JwtSecurityTokenHandler _tokenHandler;
         private readonly string _authorizationHeader;
         private readonly string _token;
+        private readonly SecurityToken _webToken;
         private readonly JwtSecurityToken _decodedToken;
 
         public CognitoValidator(string authorizationHeader)
@@ -15,6 +18,7 @@ namespace Cognito_token_validator
             _authorizationHeader = authorizationHeader;
             _token = GetBearerToken();
             _tokenHandler = new JwtSecurityTokenHandler();
+            _webToken = ProcessWebToken();
             _decodedToken = ProcessToken();
         }
 
@@ -28,18 +32,14 @@ namespace Cognito_token_validator
             return _token;
         }
 
-        public JwtSecurityToken GetDecodedToken()
+        public SecurityToken GetDecodedToken()
         {
             return _decodedToken;
         }
 
-        public string IsAuthorized()
+        private SecurityToken ProcessWebToken()
         {
-            if (string.IsNullOrWhiteSpace(_authorizationHeader))
-            {
-                return "not_authorized";
-            }
-            return "authorized";
+            return _tokenHandler.ReadJwtToken(_token);
         }
 
         private JwtSecurityToken ProcessToken()
