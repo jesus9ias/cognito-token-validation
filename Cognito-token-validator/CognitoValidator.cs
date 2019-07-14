@@ -1,7 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using Cognito_token_validator.Exceptions;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
+using System.Net;
 
 namespace Cognito_token_validator
 {
@@ -24,6 +30,37 @@ namespace Cognito_token_validator
 
         public string ValidateToken()
         {
+            // get kid and jwks url
+            var kid = _decodedToken.Header.Kid;
+            var jwksUrl = GetJwksUrl();
+
+            // get json web keys from its urls
+            var jsonWebKeys = new WebClient().DownloadString(jwksUrl);
+
+            Console.WriteLine(kid);
+            Console.WriteLine(jwksUrl);
+            Console.WriteLine(_decodedToken.EncodedPayload);
+
+            // creates a json web keys set
+            var jwks = new JsonWebKeySet(jsonWebKeys);
+            var signedKeys = jwks.GetSigningKeys();
+            foreach (var securityKey in signedKeys)
+            {
+                Console.WriteLine("jwk");
+                Console.WriteLine(securityKey.KeyId);
+            }
+
+            // validate token
+            SecurityToken validatedToken;
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidAudience = _decodedToken.Audiences.First(),
+                IssuerSigningKeys = signedKeys,
+                ValidIssuer = _decodedToken.Issuer
+            };
+            _tokenHandler.ValidateToken(_token, validationParameters, out validatedToken);
+            Console.WriteLine(validatedToken);
+
             return "ok";
         }
 
@@ -35,6 +72,22 @@ namespace Cognito_token_validator
         public SecurityToken GetDecodedToken()
         {
             return _decodedToken;
+        }
+
+        public List<string> GetRoles()
+        {
+            var claimList = new List<string>();
+            var tokenClaims = _decodedToken.Claims;
+            foreach (var tokenClaim in tokenClaims)
+            {
+                Console.WriteLine(tokenClaim.Type);
+                if (tokenClaim.Type.Contains("cognito:groups"))
+                {
+                    claimList.Add(tokenClaim.Value);
+                }
+            }
+
+            return claimList;
         }
 
         private SecurityToken ProcessWebToken()
@@ -54,6 +107,11 @@ namespace Cognito_token_validator
                 throw new InvalidAuthorizationHeader("Invalid Authorization Header");
             }
             return _authorizationHeader.Replace("Bearer ", "");
+        }
+
+        private string GetJwksUrl()
+        {
+            return $"{_decodedToken.Issuer}/.well-known/jwks.json";
         }
     }
 }

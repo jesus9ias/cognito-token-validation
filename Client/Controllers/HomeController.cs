@@ -16,7 +16,15 @@ namespace Client.Controllers
         // GET api/home
         [Authorize]
         [HttpGet]
-        public ActionResult<string> Get(int id)
+        [Route(("validate"))]
+        public ActionResult<string> Validate(int id)
+        {
+            return "Ok, token validated";
+        }
+
+        [HttpGet]
+        [Route(("auth"))]
+        public ActionResult<string> Auth(int id)
         {
             try
             {
@@ -24,6 +32,8 @@ namespace Client.Controllers
                 var validator = new CognitoValidator(authorizationHeader);
                 Console.WriteLine(validator.GetToken());
                 Console.WriteLine(validator.GetDecodedToken());
+                //  var roles = validator.GetRoles();
+                //  Console.WriteLine(string.Join("-", roles));
                 return validator.ValidateToken();
             }
             catch (InvalidAuthorizationHeader e)
