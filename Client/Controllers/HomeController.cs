@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Cognito_token_validator;
 using Cognito_token_validator.Exceptions;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Client.Controllers
 {
@@ -40,8 +42,21 @@ namespace Client.Controllers
             {
                 return e.Message;
             }
+            catch (SecurityTokenExpiredException)
+            {
+                return "Token expired";
+            }
+            catch (ArgumentException)
+            {
+                return "Invalid Token";
+            }
+            catch (WebException)
+            {
+                return "Missed data in Token";
+            }
             catch (Exception e)
             {
+                Console.WriteLine(e);
                 return e.Message;
             }
         }

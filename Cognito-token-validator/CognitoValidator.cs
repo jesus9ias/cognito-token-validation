@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Cognito_token_validator.Exceptions;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 using System.Net;
 
 namespace Cognito_token_validator
@@ -30,25 +27,15 @@ namespace Cognito_token_validator
 
         public string ValidateToken()
         {
-            // get kid and jwks url
-            var kid = _decodedToken.Header.Kid;
+            // get jwks url
             var jwksUrl = GetJwksUrl();
 
             // get json web keys from its urls
             var jsonWebKeys = new WebClient().DownloadString(jwksUrl);
 
-            Console.WriteLine(kid);
-            Console.WriteLine(jwksUrl);
-            Console.WriteLine(_decodedToken.EncodedPayload);
-
             // creates a json web keys set
             var jwks = new JsonWebKeySet(jsonWebKeys);
             var signedKeys = jwks.GetSigningKeys();
-            foreach (var securityKey in signedKeys)
-            {
-                Console.WriteLine("jwk");
-                Console.WriteLine(securityKey.KeyId);
-            }
 
             // validate token
             SecurityToken validatedToken;
