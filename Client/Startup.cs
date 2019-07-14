@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Client.Middlewares;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -46,6 +47,8 @@ namespace Client
                 app.UseDeveloperExceptionPage();
             }
 
+            //  app.UseExceptionHandler();
+            app.UseExceptionMiddleware();
             app.UseAuthentication();
             app.UseMvc();
         }
